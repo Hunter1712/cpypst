@@ -172,3 +172,7 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+destination_folder/
+source_folder/
+file_operations.db
