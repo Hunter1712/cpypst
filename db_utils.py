@@ -1,43 +1,50 @@
 import sqlite3
+import threading
+
+# Lock for DB access
+db_lock = threading.Lock()
 
 
 def create_database_connection(db_name):
+    """Create a database connection."""
     try:
-        return sqlite3.connect(db_name)
+        conn = sqlite3.connect(db_name, check_same_thread=False)
+        return conn
     except sqlite3.Error as e:
-        print(f"Database connection error: {e}")
+        print(f"Error creating database connection: {e}")
         return None
 
 
 def create_database_table(conn):
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS file_operations (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            source_path TEXT,
-            destination_path TEXT,
-            operation TEXT,
-            status TEXT,
-            error TEXT,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    conn.commit()
+    """Create the file_operations table in the database if it does not exist."""
+    try:
+        with db_lock:  # Ensure no other thread writes to the database while this runs
+            cursor = conn.cursor()
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS file_operations (
+                id INTEGER PRIMARY KEY,
+                source_path TEXT,
+                destination_path TEXT,
+                operation TEXT,
+                status TEXT,
+                error TEXT,
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            ''')
+            conn.commit()
+    except sqlite3.Error as e:
+        print(f"Error creating database table: {e}")
 
 
-def log_operation(cursor, src, dest, operation, status, error=None):
-    cursor.execute('''
-        INSERT INTO file_operations (source_path, destination_path, operation, status, error)
-        VALUES (?, ?, ?, ?, ?)
-    ''', (src, dest, operation, status, error))
-    cursor.connection.commit()
-
-
-def check_file_status(cursor, src_path):
-    cursor.execute('''
-        SELECT status FROM file_operations
-        WHERE source_path = ?
-        ORDER BY timestamp DESC LIMIT 1
-    ''', (src_path,))
-    row = cursor.fetchone()
-    return row[0] if row else None
+def log_operation(conn, src, dest, operation, status, error=None):
+    """Log file operation details into the database."""
+    try:
+        with db_lock:  # Ensure no other thread writes to the database while this runs
+            cursor = conn.cursor()
+            cursor.execute('''
+            INSERT INTO file_operations (source_path, destination_path, operation, status, error)
+            VALUES (?, ?, ?, ?, ?)
+            ''', (src, dest, operation, status, error))
+            conn.commit()
+    except sqlite3.Error as e:
+        print(f"Error logging operation: {e}")
