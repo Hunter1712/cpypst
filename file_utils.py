@@ -1,28 +1,10 @@
+# file_utils.py
 import shutil
 import os
 import hashlib
 
 
-def create_destination_directory(destination_folder):
-    """Creates the destination directory if it does not exist."""
-    try:
-        os.makedirs(destination_folder, exist_ok=True)
-        return True
-    except OSError as e:
-        print(f"Error creating destination folder: {e}")
-        return False
-
-
-def check_source_directory(source_folder):
-    """Checks if the source directory exists."""
-    if not os.path.exists(source_folder):
-        print(f"Source folder '{source_folder}' does not exist.")
-        return False
-    return True
-
-
 def copy_file(source_item_path, destination_item_path):
-    """Copies a single file from source to destination."""
     try:
         shutil.copy2(source_item_path, destination_item_path)
         print(f"Copied: {source_item_path} to {destination_item_path}")
@@ -33,7 +15,6 @@ def copy_file(source_item_path, destination_item_path):
 
 
 def copy_directory(source_item_path, destination_item_path):
-    """Copies a directory from source to destination."""
     try:
         shutil.copytree(source_item_path, destination_item_path)
         print(
@@ -45,7 +26,6 @@ def copy_directory(source_item_path, destination_item_path):
 
 
 def delete_file(file_path):
-    """Deletes a single file."""
     try:
         os.remove(file_path)
         print(f"Deleted: {file_path}")
@@ -56,9 +36,7 @@ def delete_file(file_path):
 
 
 def calculate_checksum(file_path):
-    """Calculates the SHA-256 checksum of a file."""
-    if not os.path.exists(file_path):
-        print(f"File not found: {file_path}")
+    if not os.path.exists(file_path) or not os.path.isfile(file_path):
         return None
 
     hasher = hashlib.sha256()
