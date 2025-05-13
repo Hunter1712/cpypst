@@ -1,27 +1,25 @@
-# file_utils.py
 import shutil
 import os
 import hashlib
 
 
-def copy_file(source_item_path, destination_item_path):
+def copy_file(source, destination):
     try:
-        shutil.copy2(source_item_path, destination_item_path)
-        print(f"Copied: {source_item_path} to {destination_item_path}")
+        shutil.copy2(source, destination)
+        print(f"Copied file: {source} -> {destination}")
         return True
     except (OSError, shutil.Error) as e:
-        print(f"Error copying file {source_item_path}: {e}")
+        print(f"Error copying file {source}: {e}")
         return False
 
 
-def copy_directory(source_item_path, destination_item_path):
+def copy_directory(source, destination):
     try:
-        shutil.copytree(source_item_path, destination_item_path)
-        print(
-            f"Copied directory: {source_item_path} to {destination_item_path}")
+        shutil.copytree(source, destination)
+        print(f"Copied directory: {source} -> {destination}")
         return True
     except (OSError, shutil.Error) as e:
-        print(f"Error copying directory {source_item_path}: {e}")
+        print(f"Error copying directory {source}: {e}")
         return False
 
 
@@ -31,23 +29,20 @@ def delete_file(file_path):
         print(f"Deleted: {file_path}")
         return True
     except OSError as e:
-        print(f"Error deleting file {file_path}: {e}")
+        print(f"Error deleting {file_path}: {e}")
         return False
 
 
 def calculate_checksum(file_path):
-    if not os.path.exists(file_path) or not os.path.isfile(file_path):
+    if not os.path.isfile(file_path):
         return None
 
     hasher = hashlib.sha256()
     try:
-        with open(file_path, 'rb') as file:
-            buffer = file.read(65536)
-            while buffer:
-                hasher.update(buffer)
-                buffer = file.read(65536)
+        with open(file_path, 'rb') as f:
+            while chunk := f.read(65536):
+                hasher.update(chunk)
+        return hasher.hexdigest()
     except OSError as e:
-        print(f"Error reading file {file_path}: {e}")
+        print(f"Checksum error for {file_path}: {e}")
         return None
-
-    return hasher.hexdigest()

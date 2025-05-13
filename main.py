@@ -1,4 +1,3 @@
-# main.py
 import os
 import threading
 from db_utils import create_database_connection, create_database_table
@@ -11,36 +10,39 @@ def main():
     destination_folder = "destination_folder"
     db_name = "file_operations.db"
 
-    os.makedirs(source_folder, exist_ok=True)
-    for i in range(3):
-        with open(os.path.join(source_folder, f"file{i}.txt"), "w") as f:
-            f.write(f"This is dummy file {i}.")
+    if not os.path.isdir(source_folder):
+        print(f"Source folder '{source_folder}' does not exist. Exiting.")
+        return
 
-    # Create and initialize the database connection and table
+    os.makedirs(destination_folder, exist_ok=True)
+
+    # Create and initialize the database
     conn = create_database_connection(db_name)
     if conn is None:
+        print("Could not establish database connection.")
         return
     create_database_table(conn)
     conn.close()
 
     copied_items = []
     copied_items_lock = threading.Lock()
-
-    os.makedirs(destination_folder, exist_ok=True)
-
     threads = []
+
     for item in os.listdir(source_folder):
         source_item_path = os.path.join(source_folder, item)
         destination_item_path = os.path.join(destination_folder, item)
 
         thread = threading.Thread(target=process_item, args=(
-            source_item_path, destination_item_path, db_name, copied_items, copied_items_lock))
+            source_item_path, destination_item_path, db_name,
+            copied_items, copied_items_lock
+        ))
         threads.append(thread)
         thread.start()
 
     for thread in threads:
         thread.join()
 
+    # Clean up source files if copied successfully
     if copied_items:
         deleted_files_count = 0
         for src, _ in copied_items:
