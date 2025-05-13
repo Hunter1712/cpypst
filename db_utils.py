@@ -39,13 +39,14 @@ def log_operation(conn, src, dest, operation, status,
                   error=None, src_checksum=None, dest_checksum=None, file_size=None):
     try:
         cursor = conn.cursor()
-        cursor.execute('''
-            INSERT INTO file_operations 
-            (source_path, destination_path, operation, status, error, 
-             source_checksum, destination_checksum, file_size)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (src, dest, operation, status, error, src_checksum, dest_checksum, file_size))
         with db_lock:
+            cursor.execute('''
+                INSERT INTO file_operations 
+                (source_path, destination_path, operation, status, error, 
+                 source_checksum, destination_checksum, file_size)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (src, dest, operation, status, error,
+                  src_checksum, dest_checksum, file_size))
             conn.commit()
     except sqlite3.Error as e:
         print(f"Logging error: {e}")

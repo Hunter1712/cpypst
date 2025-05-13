@@ -42,7 +42,6 @@ def main():
     for thread in threads:
         thread.join()
 
-    # Clean up source files if copied successfully
     if copied_items:
         deleted_files_count = 0
         for src, _ in copied_items:
