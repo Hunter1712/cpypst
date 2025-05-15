@@ -2,43 +2,44 @@
 
 ## Automated File Copying and Deletion
 
-A simple multithreaded tool to copy files or folders, verify them using checksums, and log everything into an SQLite database. It can also delete the original files after successful copying. Designed for ease of use with no external dependencies.
+A simple multithreaded tool that copies files or folders, verifies them using checksums, logs all operations into an SQLite database, and deletes the original files after successful copying. Designed for ease of use with no external dependencies.
 
 ## Features
 
 - Copies files or entire directories
 - Verifies integrity using SHA-256 checksums
 - Retries failed copies up to 3 times
+- Deletes original files after successful copy and verification
 - Logs all actions (success, failure, skip, etc.) to an SQLite database
 - Thread-safe database access
-- Modular, easy-to-read Python code
+- Clean and modular Python code
 
 ## How It Works
 
-1. The database is created if it doesn't already exist.
+1. A database is created if it doesn't already exist.
 2. For each file or directory:
    - It checks if the destination already exists.
-   - If not, it attempts to copy.
-   - If the item is a file, it compares SHA-256 checksums.
+   - If not, it attempts to copy the item.
+   - If the item is a file, it calculates and compares SHA-256 checksums.
    - On checksum mismatch, it retries up to 3 times.
-   - Success or failure is logged in the database.
-   - Successfully copied files are optionally deleted.
+   - If the copy is successful and the checksum matches (for files), the original is deleted.
+   - Every action is logged in the database.
 
 ## File Structure
 
-- **db_utils.py** – Manages database connections and logging
-- **file_utils.py** – Handles copying, deleting, and checksumming files/directories
-- **main_utils.py** – Core logic for processing files with retries and logging
+- **db_utils.py** – Manages database connections and logs operations
+- **file_utils.py** – Handles copying, deleting, and checksumming
+- **main_utils.py** – Coordinates processing logic, retries, and logging
 
 ## Requirements
 
 - Python 3.8 or newer
-- Standard Python libraries only:
+- Uses only standard Python libraries:
   - `os`, `shutil`, `sqlite3`, `hashlib`, `threading`, `time`
 
 ## Database Log Format
 
-Each operation is stored in the `file_operations` table with:
+Each entry in the `file_operations` table includes:
 
 - `source_path`
 - `destination_path`
